@@ -23,6 +23,7 @@ object ServerStream {
       conf <- Stream.eval(Config.loadServiceConfig[IO])
       scheduler <- Scheduler[IO](5)
       k = new Kafka(conf.kafkaConfig)
+      _ = k.createTopic()
       stream <- BlazeBuilder[IO]
           .bindHttp(8080, "0.0.0.0")
           .mountService(helloWorldService, "/")
