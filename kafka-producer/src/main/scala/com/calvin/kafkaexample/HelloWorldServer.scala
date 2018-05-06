@@ -25,10 +25,9 @@ object ServerStream {
       k = new Kafka(conf.kafkaConfig)
       _ = k.createTopic()
       stream <- BlazeBuilder[IO]
-          .bindHttp(8080, "0.0.0.0")
+          .bindHttp(8081, "0.0.0.0")
           .mountService(helloWorldService, "/")
-          .serve.concurrently(k.queueThings(scheduler))
+          .serve concurrently
+           k.queueThings(scheduler)
     } yield stream
-
-
 }

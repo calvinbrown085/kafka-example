@@ -26,11 +26,17 @@ final case class Kafka(kafkaConfig: KafkaConfig) {
   props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer")
 
   val producer = new KafkaProducer[String, String](props)
-  val myTopic = "my-topic-3"
-  val partitionCount = 2
+  val myTopic = "my-topic-7"
+  val partitionCount = 3
+  var c = 0
 
   def queueThings(scheduler: Scheduler): Stream[IO, Unit] = {
-    scheduler.awakeEvery[IO](1.second).evalMap(_ => IO(producer.send(new ProducerRecord[String, String](myTopic, UUID.randomUUID().toString, "This is a message"))))
+    scheduler.awakeEvery[IO](1.second).evalMap{_ =>
+      IO{
+        c += 1
+        producer.send(new ProducerRecord[String, String](myTopic, UUID.randomUUID().toString, s"This is message $c"))
+      }
+    }
   }
 
   def createTopic() = {
