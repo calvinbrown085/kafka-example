@@ -3,7 +3,9 @@ package com.calvin.kafkaexample
 import cats.effect._
 import cats.implicits._
 import cats.effect.{Effect, IO}
+import com.calvin.kafkaexample.twitter.TwitterStream
 import fs2.{Scheduler, Stream, StreamApp}
+import org.http4s.client.blaze.Http1Client
 import org.http4s.server.blaze.BlazeBuilder
 
 import scala.concurrent.ExecutionContext
@@ -22,12 +24,12 @@ object ServerStream {
     for {
       conf <- Stream.eval(Config.loadServiceConfig[IO])
       scheduler <- Scheduler[IO](5)
+      client <- Stream.eval(Http1Client[IO]())
       k = new Kafka(conf.kafkaConfig)
       _ = k.createTopic()
       stream <- BlazeBuilder[IO]
           .bindHttp(8081, "0.0.0.0")
           .mountService(helloWorldService, "/")
-          .serve concurrently
-           k.queueThings(scheduler)
+          .serve concurrently Stream.eval(TwitterStream.twitterStream(client, k))
     } yield stream
 }

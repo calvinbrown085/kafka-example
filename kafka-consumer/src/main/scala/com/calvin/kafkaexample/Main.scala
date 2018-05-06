@@ -7,13 +7,10 @@ import java.util.Properties
 import scala.concurrent.ExecutionContext.Implicits.global
 import fs2.Scheduler
 import org.apache.kafka.clients.consumer._
-import org.apache.kafka.common._
 import org.apache.kafka.common.serialization._
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
-import cats.effect._
-import cats.implicits._
 import cats.effect.{Effect, IO}
 import fs2.{Scheduler, Stream, StreamApp}
 import org.http4s.HttpService
@@ -43,7 +40,7 @@ object ServerStream extends Http4sDsl[IO]{
     } yield stream
 }
 object KafkaConsumer {
-  val myTopic = "my-topic-7"
+  val myTopic = "twitter-stream-1"
 
 
   def consume[F[_], A, B](scheduler: Scheduler, consumer: KafkaConsumer[A, B])(implicit F: Effect[F]): Stream[F, Iterable[Unit]] = {
@@ -59,7 +56,7 @@ object KafkaConsumer {
 
   def createKafkaConsumer[A, B]: KafkaConsumer[A, B] = {
     val consumerConfig = Map[String, Object](
-      ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG -> "192.168.99.100:32400",
+      ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG -> "localhost:9092",
       ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG -> "true",
       ConsumerConfig.GROUP_ID_CONFIG -> "test",
       ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG -> classOf[StringDeserializer].getName,

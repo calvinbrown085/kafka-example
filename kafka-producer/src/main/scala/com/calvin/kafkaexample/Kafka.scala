@@ -2,14 +2,13 @@ package com.calvin.kafkaexample
 
 import java.util.{Properties, UUID}
 
-import cats.effect.{Effect, IO}
+import cats.effect.IO
+import com.calvin.kafkaexample.twitter.BasicTweet
 import fs2.{Scheduler, Stream}
-import scala.collection.JavaConverters._
-import org.apache.kafka.clients.admin._
-import org.apache.kafka.clients.producer._
-import org.apache.kafka.common.serialization._
+import org.apache.kafka.clients.admin.{AdminClient, AdminClientConfig, NewTopic}
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
 
+import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -26,17 +25,12 @@ final case class Kafka(kafkaConfig: KafkaConfig) {
   props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer")
 
   val producer = new KafkaProducer[String, String](props)
-  val myTopic = "my-topic-7"
+  val myTopic = "twitter-stream-1"
   val partitionCount = 3
   var c = 0
 
-  def queueThings(scheduler: Scheduler): Stream[IO, Unit] = {
-    scheduler.awakeEvery[IO](1.second).evalMap{_ =>
-      IO{
-        c += 1
-        producer.send(new ProducerRecord[String, String](myTopic, UUID.randomUUID().toString, s"This is message $c"))
-      }
-    }
+  def queueTweets(basicTweet: BasicTweet) = Stream.eval{
+    producer.send(new ProducerRecord[String, String](myTopic, UUID.randomUUID().toString, basicTweet.toString))
   }
 
   def createTopic() = {
