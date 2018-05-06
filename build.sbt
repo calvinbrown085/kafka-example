@@ -60,6 +60,14 @@ val dockerF = dockerfile in docker := {
   }
 }
 
+val imageN = imageNames in docker := Seq(
+  ImageName(
+    namespace = Some(organization.value),
+    repository = name.value,
+    tag = Some(version.value)
+  )
+)
+
 lazy val root = project.in(file("."))
   .settings(name := "kafka-example-root")
   .aggregate(
